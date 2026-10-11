@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Padel focus">
+<meta name="theme-color" content="#1D5BA3">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Carnet de focus padel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: focus du jour en "terrain" bleu en tête, puis plan en 3 blocs, puis la banque de focus filtrable par famille. */
+:root {
+  --bg: #EEF2F5;
+  --surface: #FFFFFF;
+  --ink: #13202D;
+  --muted: #586979;
+  --line: #D5DDE4;
+  --court: #1D5BA3;
+  --court-ink: #FFFFFF;
+  --ball: #D6E33B;
+  --ball-ink: #1B2410;
+  --ok: #2E8B57;
+  --mid: #C98A12;
+  --ko: #B8433A;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D151E; --surface: #15202B; --ink: #E4EBF2; --muted: #93A3B3; --line: #26333F;
+  --court: #234F80; --court-ink: #F2F6FA; --ball: #D6E33B; --ball-ink: #1B2410;
+  --ok: #5CC28A; --mid: #E2AC45; --ko: #E07A70; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0D151E; --surface: #15202B; --ink: #E4EBF2; --muted: #93A3B3; --line: #26333F;
+  --court: #234F80; --court-ink: #F2F6FA; --ball: #D6E33B; --ball-ink: #1B2410;
+  --ok: #5CC28A; --mid: #E2AC45; --ko: #E07A70; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 110px; }
+.tab { display: grid; gap: 32px; }
+.tab > section { display: grid; gap: 12px; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.info { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--muted); background: transparent; color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 700; font-size: 15px; line-height: 1; display: grid; place-items: center; padding: 0; }
+.info[aria-expanded="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.info.sm { width: 22px; height: 22px; font-size: 12px; margin-top: 4px; }
+.info-text { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; color: var(--muted); font-size: .95rem; max-width: 68ch; }
+.info-text b { color: var(--ink); }
+.skills li { display: flex; gap: 6px; align-items: flex-start; }
+.skills li .skill { flex: 1; min-width: 0; }
+.item { scroll-margin-top: 16px; }
+.item.flash { outline: 3px solid var(--ball); outline-offset: 2px; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); }
+.tabbar button { background: none; border: 0; color: var(--muted); font-family: var(--display); font-size: 1.05rem; text-transform: uppercase; letter-spacing: .04em; padding: 10px 4px; border-radius: 6px; }
+.tabbar button[aria-selected="true"] { color: var(--ink); background: var(--bg); box-shadow: inset 0 -3px 0 var(--ball); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: .01em; }
+h1 { font-size: 2.6rem; line-height: 1; text-transform: uppercase; }
+h2 { font-size: 1.7rem; text-transform: uppercase; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 62ch; margin-top: 8px; }
+.eyebrow { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--ball); outline-offset: 2px; }
+
+/* Focus du jour : un demi-terrain vu de dessus */
+.court {
+  position: relative; background: var(--court); color: var(--court-ink);
+  border-radius: 6px; padding: 22px 22px 30px; overflow: hidden;
+  display: grid; gap: 14px;
+}
+.court::before { /* ligne de service + ligne centrale */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 10px; border-top: 2px solid rgba(255,255,255,.28);
+}
+.court::after {
+  content: ""; position: absolute; left: 50%; height: 10px; bottom: 0; border-left: 2px solid rgba(255,255,255,.28);
+}
+.court > * { position: relative; z-index: 1; }
+.court .eyebrow { color: rgba(255,255,255,.75); }
+.focus-title { font-family: var(--display); font-size: 2rem; line-height: 1.05; text-transform: uppercase; }
+.focus-detail { max-width: 60ch; opacity: .92; }
+.focus-check { font-size: .95rem; background: rgba(0,0,0,.18); padding: 8px 12px; border-radius: 4px; max-width: 60ch; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn-ball { background: var(--ball); color: var(--ball-ink); border: 0; padding: 10px 16px; border-radius: 999px; font-weight: 700; }
+.btn-ghost { background: transparent; color: var(--court-ink); border: 1.5px solid rgba(255,255,255,.55); padding: 9px 15px; border-radius: 999px; font-weight: 600; }
+.btn-ghost:hover { background: rgba(255,255,255,.1); }
+.ball-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--ball); vertical-align: middle; margin-right: 6px; box-shadow: inset -2px -2px 0 rgba(0,0,0,.15); }
+
+/* Plan */
+.plan { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+.block .weeks { font-family: var(--display); font-size: 1rem; color: var(--court); text-transform: uppercase; letter-spacing: .04em; }
+:root[data-theme="dark"] .block .weeks { color: var(--ball); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .block .weeks { color: var(--ball); } }
+.plan { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.block.is-current { border: 2px solid var(--court); padding: 15px; }
+.block-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.now { font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--ball); color: var(--ball-ink); text-transform: uppercase; letter-spacing: .06em; }
+.count { font-variant-numeric: tabular-nums; font-weight: 700; font-size: .95rem; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin: 2px 0 6px; }
+.bar > span { display: block; height: 100%; background: var(--ok); border-radius: 3px; }
+.skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.skill { width: 100%; display: flex; gap: 10px; align-items: flex-start; text-align: left; background: none; border: 0; padding: 6px 4px; border-radius: 4px; color: var(--ink); font-size: .93rem; line-height: 1.3; }
+.skill:hover { background: var(--bg); }
+.skill .box { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); margin-top: 1px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--surface); }
+.skill[aria-pressed="true"] .box { background: var(--ok); border-color: var(--ok); }
+.skill[aria-pressed="true"] .lbl { color: var(--muted); }
+.skill.is-plus .lbl { font-style: italic; }
+.rules { align-items: center; grid-template-columns: auto 1fr; justify-self: start; color: var(--muted); font-size: .95rem; display: grid; gap: 10px; }
+.rules b { color: var(--ink); }
+
+/* Banque */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 6px 12px; border-radius: 999px; font-size: .92rem; font-weight: 600; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.list { display: grid; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px 14px; }
+.item.is-focus { border-color: var(--court); box-shadow: inset 4px 0 0 var(--ball); }
+.item .meta { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.item p { color: var(--muted); font-size: .95rem; grid-column: 1 / -1; max-width: 68ch; }
+.item .check { color: var(--ink); }
+.item .actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+.tag-plus { font-size: .72rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; background: var(--ball); color: var(--ball-ink); margin-left: 6px; vertical-align: 2px; letter-spacing: .04em; }
+.pick { background: var(--court); color: var(--court-ink); border: 0; padding: 6px 12px; border-radius: 999px; font-size: .88rem; font-weight: 600; }
+.state { font: inherit; font-size: .88rem; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.stats { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pill { font-size: .78rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; align-self: start; }
+.pill.s0 { color: var(--muted); border: 1px solid var(--line); }
+.pill.s1 { color: var(--mid); border: 1px solid var(--mid); }
+.pill.s2 { color: var(--ok); border: 1px solid var(--ok); }
+
+/* Journal */
+.log { margin-top: 12px; display: grid; gap: 6px; }
+.log-row { display: flex; gap: 10px; flex-wrap: wrap; font-size: .93rem; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.log-row time { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 6.5em; }
+.r2 { color: var(--ok); font-weight: 700; } .r1 { color: var(--mid); font-weight: 700; } .r0 { color: var(--ko); font-weight: 700; }
+.empty { color: var(--muted); font-size: .95rem; }
+.linkbtn { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 0; font-size: .85rem; }
+
+@media (max-width: 680px) {
+  .plan { grid-template-columns: minmax(0,1fr); }
+  h1 { font-size: 2.1rem; }
+  .focus-title { font-size: 1.6rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .court { transition: background .2s; }
+}
+</style>
+
+<div class="wrap">
+  <div class="tab" id="tab-match">
+    <header class="head">
+      <div>
+        <div class="eyebrow">Niveau 5 · profil défenseur</div>
+        <h1>Carnet de focus padel</h1>
+      </div>
+      <button class="info" data-info="i-intro" aria-expanded="false" aria-label="Comment ça marche">i</button>
+    </header>
+    <p class="info-text" id="i-intro" hidden>Avant chaque match, choisis <b>un seul</b> focus. Après le match, note si tu l'as appliqué. Les focus sont des consignes courtes, faciles à se rappeler entre deux points. Pas de kick smash ni de par 3 ici : tout est pensé pour gagner des points en étant solide et en reprenant le filet.</p>
+
+    <section class="court" id="focusCard" aria-live="polite">
+      <div class="eyebrow"><span class="ball-dot"></span>Focus du match</div>
+      <div class="focus-title" id="fTitle">Pas encore choisi</div>
+      <p class="focus-detail" id="fDetail" hidden></p>
+      <p class="focus-check" id="fCheck" hidden></p>
+      <div class="row" id="fPickRow">
+        <button class="btn-ball" id="drawBlock">Tirer dans mon bloc</button>
+        <button class="btn-ghost" id="drawAny">Tirer parmi tous</button>
+      </div>
+      <div class="row" id="fReview" hidden>
+        <span style="font-weight:600">Appliqué ?</span>
+        <button class="btn-ghost" data-r="2">Souvent</button>
+        <button class="btn-ghost" data-r="1">Parfois</button>
+        <button class="btn-ghost" data-r="0">Oublié</button>
+        <button class="btn-ghost" id="clearFocus">Changer</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="head">
+        <h2>Plan</h2>
+        <button class="info" data-info="i-plan" aria-expanded="false" aria-label="À propos du plan">i</button>
+      </div>
+      <p class="info-text" id="i-plan" hidden>Trois blocs d'environ 4 semaines : d'abord ne plus perdre de points en défense, ensuite savoir quand monter, enfin tenir le filet une fois arrivé. Le mental se travaille en continu. Touche un focus pour le marquer <b>acquis</b> ou non, et touche son <b>i</b> pour ouvrir sa fiche. Passe au bloc suivant quand la barre dépasse les deux tiers.</p>
+      <div class="rules">
+        <label for="curBlock"><b>Bloc en cours</b></label>
+        <select class="state" id="curBlock"><option value="1">Bloc 1 · Défense solide</option><option value="2">Bloc 2 · Transition</option><option value="3">Bloc 3 · Tenir le filet</option></select>
+      </div>
+      <div class="plan" id="plan"></div>
+    </section>
+  </div>
+
+  <div class="tab" id="tab-bank" hidden>
+    <section>
+      <div class="head">
+        <h2>Banque de focus</h2>
+        <button class="info" data-info="i-bank" aria-expanded="false" aria-label="À propos de la banque">i</button>
+      </div>
+      <p class="info-text" id="i-bank" hidden>Chaque fiche explique le focus et donne un critère pour savoir si tu l'as tenu. Les focus marqués <span class="tag-plus">NIV +</span> sont un cran au-dessus et ne sortent pas au tirage.</p>
+      <div class="filters" id="filters" role="group" aria-label="Filtrer par famille"></div>
+      <div class="list" id="list"></div>
+    </section>
+  </div>
+
+  <div class="tab" id="tab-log" hidden>
+    <section>
+      <h2>Journal des matchs</h2>
+      <div class="log" id="log"></div>
+    </section>
+    <section>
+      <div class="head">
+        <h2>Sauvegarde</h2>
+        <button class="info" data-info="i-save" aria-expanded="false" aria-label="À propos de la sauvegarde">i</button>
+      </div>
+      <p class="info-text" id="i-save" hidden>Ta progression reste sur ce téléphone. Enregistre-la de temps en temps dans Fichiers (iCloud Drive) pour la retrouver sur un autre appareil ou après un effacement de Safari.</p>
+      <div class="row" style="margin-top:12px">
+        <button class="pick" id="exportBtn">Sauvegarder</button>
+        <label class="pick" for="importFile" style="cursor:pointer">Restaurer</label>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+      <p class="stats" id="backupMsg" style="margin-top:8px" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+
+<nav class="tabbar" aria-label="Onglets">
+  <button data-tab="match" aria-selected="true">Plan</button>
+  <button data-tab="bank" aria-selected="false">Banque</button>
+  <button data-tab="log" aria-selected="false">Journal</button>
+</nav>
+
+<script>
+const FOCUS = [
+  // Défense
+  {id:"def-plat", cat:"Défense", block:1, t:"Défense à plat ou liftée, jamais slicée",
+   d:"Une balle slicée en défense flotte et reste haute après le rebond : elle se fait volleyer facilement. À plat ou liftée, elle plonge dans les pieds du volleyeur.",
+   c:"Sur 10 défenses basses, au moins 7 sans slice."},
+  {id:"def-lob", cat:"Défense", block:1, t:"Lob haut et profond par défaut",
+   d:"Quand tu es en difficulté, le lob te donne du temps. Vise les deux derniers mètres, au-dessus de l'épaule revers du joueur au filet, plutôt que de chercher un passing.",
+   c:"Lobs qui rebondissent après la ligne de service et ne finissent pas en smash gagnant."},
+  {id:"def-vitre", cat:"Défense", block:1, t:"Laisser passer la balle et jouer après la vitre",
+   d:"Sur une balle profonde, ne la prends pas en urgence avant la vitre. Recule avec elle, laisse-la rebondir sur la vitre du fond, puis joue en avançant.",
+   c:"Aucune balle profonde jouée en reculant, les pieds collés au sol."},
+  {id:"def-sortie", cat:"Défense", block:1, t:"Sortie de vitre : de profil, frappe devant soi",
+   d:"Épaule tournée vers la vitre, pas trop près (un grand pas de distance). Laisse la balle redescendre et frappe devant toi, poids du corps vers l'avant.",
+   c:"Pas de balle qui te passe dans le dos ou te colle au corps après la vitre."},
+  {id:"def-centre", cat:"Défense", block:1, t:"Dans le doute, au milieu",
+   d:"Une balle au centre, entre les deux adversaires, crée de l'hésitation et réduit les angles qu'ils peuvent prendre sur toi.",
+   c:"En difficulté, tu joues le centre plutôt que la ligne."},
+  {id:"def-bajada", cat:"Défense", block:3, plus:true, t:"Bajada simple sur balle haute après la vitre",
+   d:"Quand la balle ressort haut de la vitre du fond, ne la relobe pas : frappe-la vers le bas dans les pieds du joueur au filet, sans chercher la vitesse.",
+   c:"Sur les balles hautes après vitre, tu attaques au lieu de relober."},
+  // Transition
+  {id:"tr-chiquita", cat:"Transition", block:2, t:"Chiquita puis monter au filet",
+   d:"Balle lente et basse dans les pieds de l'adversaire au filet : il doit volleyer vers le haut. Pendant que la balle voyage, tu avances.",
+   c:"Après chaque chiquita, tu es au moins à la ligne de service quand il frappe."},
+  {id:"tr-lob", cat:"Transition", block:2, t:"Mon lob passe : on monte",
+   d:"Si ton lob passe au-dessus des adversaires et les fait reculer, c'est le moment de reprendre le filet à deux.",
+   c:"Chaque lob qui passe est suivi d'une montée."},
+  {id:"tr-deux", cat:"Transition", block:2, t:"On monte à deux, on recule à deux",
+   d:"Imagine une corde de 3 mètres entre toi et ton partenaire. Un joueur au filet et l'autre au fond ouvre un trou au milieu.",
+   c:"Jamais un joueur au filet pendant que l'autre reste au fond."},
+  {id:"tr-split", cat:"Transition", block:2, t:"Split step en montant à la volée",
+   d:"Pendant la montée, arrête-toi et fais un petit saut au moment où l'adversaire frappe. Tu repars ensuite vers la balle.",
+   c:"Tu es posé (pas en train de courir) au contact de l'adversaire."},
+  {id:"tr-nomans", cat:"Transition", block:2, t:"Ne pas rester dans la zone de service",
+   d:"La zone entre la ligne de service et la grille est la plus exposée : les balles arrivent dans les pieds. On la traverse, on n'y reste pas.",
+   c:"Après ta montée, tu finis à 2 m du filet ou tu redescends au fond."},
+  // Filet
+  {id:"fi-place", cat:"Filet", block:3, t:"Volée de placement, pas de puissance",
+   d:"Au padel la volée sert à déplacer, pas à finir. Vise les pieds, le centre ou la grille latérale, avec un geste court.",
+   c:"Moins de volées dans la vitre du fond qui reviennent en balles faciles."},
+  {id:"fi-raquette", cat:"Filet", block:3, t:"Raquette haute devant moi",
+   d:"Entre deux coups au filet, la tête de raquette reste à hauteur de poitrine, devant toi. Tu gagnes du temps sur les balles rapides.",
+   c:"Pas de raquette qui pend vers le sol entre les échanges."},
+  {id:"fi-bandeja", cat:"Filet", block:3, t:"Bandeja de contrôle plutôt que smash",
+   d:"Sur un lob que tu ne peux pas finir, joue une bandeja profonde et contrôlée pour garder le filet. Le smash fort se garde pour les balles très courtes.",
+   c:"Après ta bandeja, ton équipe est toujours au filet."},
+  {id:"fi-recul", cat:"Filet", block:3, t:"Reculer de profil sur un lob",
+   d:"Ne cours pas à reculons face au filet : tourne les épaules, recule en pas chassés, garde la balle devant toi.",
+   c:"Aucune balle prise en déséquilibre arrière."},
+  {id:"fi-centre", cat:"Filet", block:3, t:"Volée au centre quand je suis gêné",
+   d:"Sur une balle basse ou rapide, ne cherche pas l'angle : remets au milieu, bas, et reste au filet.",
+   c:"Les volées difficiles ne finissent plus dans le filet ou dehors."},
+  // Déplacement
+  {id:"dp-split", cat:"Déplacement", block:1, t:"Split step à chaque frappe adverse",
+   d:"Petit saut léger sur la pointe des pieds au moment exact où l'adversaire touche la balle. Au padel le temps de réaction est court : le saut est petit et vif.",
+   c:"Tu peux dire « hop » à chaque frappe adverse pendant tout un jeu."},
+  {id:"dp-talons", cat:"Déplacement", block:1, t:"Talons décollés",
+   d:"Poids sur l'avant des pieds, genoux un peu fléchis. Les talons posés ralentissent ton premier pas.",
+   c:"Tu te sens « léger » en attendant la balle."},
+  {id:"dp-ajust", cat:"Déplacement", block:1, t:"Petits pas avant de frapper",
+   d:"Les derniers appuis avant la frappe sont des petits pas d'ajustement, pas un grand pas en catastrophe.",
+   c:"Tu frappes équilibré, sans tomber vers l'arrière ou le côté."},
+  // Service / retour
+  {id:"sv-sur", cat:"Service et retour", block:1, t:"Service sûr, puis montée",
+   d:"Le service au padel sert à prendre le filet, pas à marquer. Vise la vitre latérale ou le T, sans risque, et monte juste derrière.",
+   c:"Zéro double faute et une montée après chaque service."},
+  {id:"sv-retour", cat:"Service et retour", block:2, t:"Retour bas aux pieds du serveur",
+   d:"Le serveur monte : un retour bas et lent dans ses pieds l'oblige à volleyer vers le haut. Sinon, un lob.",
+   c:"Pas de retour à mi-hauteur qui se fait volleyer facilement."},
+  // Tactique
+  {id:"ta-cd", cat:"Tactique", block:1, t:"Balle au centre : le coup droit prend",
+   d:"Règle par défaut à fixer avec ton partenaire : la balle au milieu est pour celui qui a son coup droit au centre.",
+   c:"Aucune balle au centre laissée passer entre vous deux."},
+  {id:"ta-patience", cat:"Tactique", block:1, t:"Trois balles de patience avant d'attaquer",
+   d:"En défense, ne cherche pas le point gagnant tout de suite. Remets trois balles propres et attends la balle courte.",
+   c:"Moins de fautes directes sur des tentatives de passing."},
+  {id:"ta-cible", cat:"Tactique", block:2, t:"Jouer sur le joueur en difficulté",
+   d:"Repère en début de match le joueur le moins à l'aise (souvent en revers ou à la vitre) et charge-le.",
+   c:"Tu peux nommer la cible du jour après 3 jeux."},
+  // Mental
+  {id:"me-com", cat:"Mental", block:0, t:"Annoncer chaque balle : moi, toi, vitre",
+   d:"Parler sur chaque balle partagée ou qui va dans la vitre évite les doublons et les balles laissées.",
+   c:"Ton partenaire t'entend sur chaque balle au centre."},
+  {id:"me-reset", cat:"Mental", block:0, t:"Après une faute : respiration, point suivant",
+   d:"Une routine courte entre les points : une respiration lente, un regard vers les cordes de ta raquette ou le sol, puis on repart.",
+   c:"Pas deux fautes directes de suite par énervement."},
+  {id:"me-partenaire", cat:"Mental", block:0, t:"Un mot positif au partenaire à chaque point",
+   d:"Check de raquette, « bien joué », « allez » : l'équipe reste soudée, surtout quand ça va mal.",
+   c:"Tu le fais aussi sur les points perdus."}
+];
+const CATS = ["Tous","Défense","Transition","Filet","Déplacement","Service et retour","Tactique","Mental"];
+const BLOCKS = [
+  {n:1, weeks:"Bloc 1 · sem. 1–4", name:"Défense solide"},
+  {n:2, weeks:"Bloc 2 · sem. 5–8", name:"Transition"},
+  {n:3, weeks:"Bloc 3 · sem. 9–12", name:"Tenir le filet"},
+  {n:0, weeks:"En continu", name:"Mental et communication"}
+];
+const isAcq = id => st[id] === 2;
+const RL = ["Oublié","Parfois","Souvent"];
+
+const store = {
+  get(k, f){ try { const v = localStorage.getItem("padel:"+k); return v ? JSON.parse(v) : f; } catch(e){ return f; } },
+  set(k, v){ try { localStorage.setItem("padel:"+k, JSON.stringify(v)); } catch(e){} }
+};
+let st = store.get("states", {});
+let log = store.get("log", []);
+let focusId = store.get("focus", null);
+let block = store.get("block", 1);
+let cat = "Tous";
+
+const $ = id => document.getElementById(id);
+const byId = id => FOCUS.find(f => f.id === id);
+
+function renderFilters(){
+  $("filters").innerHTML = CATS.map(c => `<button class="chip" aria-pressed="${c===cat}" data-c="${c}">${c}</button>`).join("");
+}
+function statsFor(id){
+  const l = log.filter(e => e.id === id);
+  if(!l.length) return "Jamais choisi";
+  const s = l.filter(e => e.r===2).length;
+  return `${l.length} match${l.length>1?"s":""} · ${s} fois « souvent »`;
+}
+function renderList(){
+  const items = FOCUS.filter(f => cat==="Tous" || f.cat===cat);
+  $("list").innerHTML = items.map(f => {
+    const s = isAcq(f.id) ? 2 : 0;
+    const bl = f.block ? `Bloc ${f.block}` : "Continu";
+    return `<article class="item ${f.id===focusId?"is-focus":""}" id="item-${f.id}">
+      <div><div class="meta">${f.cat} · ${bl}</div><h3>${f.t}${f.plus?'<span class="tag-plus">NIV +</span>':""}</h3></div>
+      <span class="pill s${s}">${s ? "Acquis" : "À travailler"}</span>
+      <p>${f.d}</p>
+      <p class="check"><b>Critère :</b> ${f.c}</p>
+      <div class="actions">
+        <button class="pick" data-pick="${f.id}">${f.id===focusId?"Focus actuel":"Prendre comme focus"}</button>
+        <button class="state" data-acq="${f.id}" aria-pressed="${!!s}">${s ? "Remettre à travailler" : "Marquer acquis"}</button>
+        <span class="stats">${statsFor(f.id)}</span>
+      </div>
+    </article>`;
+  }).join("");
+}
+function renderFocus(){
+  const f = focusId && byId(focusId);
+  $("fTitle").textContent = f ? f.t : "Pas encore choisi";
+  $("fDetail").textContent = f ? f.d : ""; $("fDetail").hidden = !f;
+  $("fCheck").hidden = !f;
+  if(f) $("fCheck").innerHTML = "<b>Critère :</b> " + f.c;
+  $("fPickRow").hidden = !!f;
+  $("fReview").hidden = !f;
+}
+function renderLog(){
+  if(!log.length){ $("log").innerHTML = '<p class="empty">Tes bilans apparaîtront ici après chaque match.</p>'; return; }
+  $("log").innerHTML = log.slice().reverse().slice(0,15).map(e => {
+    const f = byId(e.id); const d = new Date(e.d);
+    return `<div class="log-row"><time>${d.toLocaleDateString("fr-FR",{day:"2-digit",month:"short"})}</time><span style="flex:1;min-width:0">${f?f.t:e.id}</span><span class="r${e.r}">${RL[e.r]}</span></div>`;
+  }).join("") + '<button class="linkbtn" id="clearLog">Effacer le journal</button>';
+}
+function renderPlan(){
+  $("plan").innerHTML = BLOCKS.map(b => {
+    const items = FOCUS.filter(f => f.block === b.n);
+    const core = items.filter(f => !f.plus);
+    const done = core.filter(f => isAcq(f.id)).length;
+    const pct = core.length ? Math.round(done / core.length * 100) : 0;
+    const cur = b.n === block;
+    return `<div class="block ${cur ? "is-current" : ""}">
+      <div class="block-head"><div class="weeks">${b.weeks}</div>${cur ? '<span class="now">En cours</span>' : ""}</div>
+      <div class="block-head"><h3>${b.name}</h3><span class="count">${done}/${core.length}</span></div>
+      <div class="bar" role="img" aria-label="${done} sur ${core.length} acquis"><span style="width:${pct}%"></span></div>
+      <ul class="skills">${items.map(f => `<li><button class="skill ${f.plus ? "is-plus" : ""}" data-acq="${f.id}" aria-pressed="${isAcq(f.id)}"><span class="box">${isAcq(f.id) ? "✓" : ""}</span><span class="lbl">${f.t}${f.plus ? " (niv +)" : ""}</span></button><button class="info sm" data-sheet="${f.id}" aria-label="Fiche : ${f.t}">i</button></li>`).join("")}</ul>
+    </div>`;
+  }).join("");
+}
+function all(){ renderPlan(); renderFilters(); renderList(); renderFocus(); renderLog(); }
+
+function draw(onlyBlock){
+  let pool = FOCUS.filter(f => !isAcq(f.id) && !f.plus);
+  if(onlyBlock) pool = pool.filter(f => f.block===block || f.block===0);
+  if(!pool.length) pool = FOCUS.filter(f => !f.plus);
+  // favorise les focus peu choisis
+  const w = pool.map(f => 1 / (1 + log.filter(e=>e.id===f.id).length));
+  let r = Math.random() * w.reduce((a,b)=>a+b,0);
+  let pick = pool[0];
+  for(let i=0;i<pool.length;i++){ r -= w[i]; if(r<=0){ pick = pool[i]; break; } }
+  setFocus(pick.id);
+}
+function setFocus(id){ focusId = id; store.set("focus", id); all(); }
+
+document.addEventListener("click", e => {
+  const t = e.target;
+  const tb = t.closest("[data-tab]");
+  if(tb){ showTab(tb.dataset.tab); return; }
+  const inf = t.closest("[data-info]");
+  if(inf){ const p = $(inf.dataset.info); p.hidden = !p.hidden; inf.setAttribute("aria-expanded", String(!p.hidden)); return; }
+  const sh = t.closest("[data-sheet]");
+  if(sh){
+    cat = "Tous"; renderFilters(); renderList(); showTab("bank");
+    const el = $("item-" + sh.dataset.sheet);
+    if(el){ el.scrollIntoView({block:"start"}); el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 1600); }
+    return;
+  }
+  const acq = t.closest("[data-acq]");
+  if(acq){ const id = acq.dataset.acq; st[id] = isAcq(id) ? 0 : 2; store.set("states", st); renderPlan(); renderList(); return; }
+  if(t.dataset.c){ cat = t.dataset.c; renderFilters(); renderList(); }
+  if(t.dataset.pick){ setFocus(t.dataset.pick); showTab("match"); }
+  if(t.id==="drawBlock") draw(true);
+  if(t.id==="drawAny") draw(false);
+  if(t.id==="clearFocus") setFocus(null);
+  if(t.dataset.r && focusId){
+    log.push({id:focusId, r:+t.dataset.r, d:Date.now()});
+    store.set("log", log);
+    setFocus(null);
+  }
+  if(t.id==="clearLog"){
+    if(t.dataset.armed){ log=[]; store.set("log", log); all(); }
+    else { t.dataset.armed="1"; t.textContent="Confirmer l'effacement"; }
+  }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if(t.id==="curBlock"){ block = +t.value; store.set("block", block); renderPlan(); }
+});
+// Sauvegarde / restauration
+const msg = t => { $("backupMsg").textContent = t; };
+$("exportBtn").addEventListener("click", async () => {
+  const data = JSON.stringify({app:"padel-focus", v:1, date:new Date().toISOString(), states:st, log, focus:focusId, block}, null, 2);
+  const name = "padel-focus-" + new Date().toISOString().slice(0,10) + ".json";
+  const file = new File([data], name, {type:"application/json"});
+  try {
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({files:[file], title:"Sauvegarde padel"});
+      msg("Choisis « Enregistrer dans Fichiers » pour la garder sur iCloud Drive.");
+      return;
+    }
+  } catch(e) { if (e.name === "AbortError") { msg("Sauvegarde annulée."); return; } }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  msg("Fichier " + name + " téléchargé.");
+});
+$("importFile").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (d.app !== "padel-focus") throw new Error();
+    st = d.states || {}; log = d.log || []; focusId = d.focus || null; block = d.block || 1;
+    store.set("states", st); store.set("log", log); store.set("focus", focusId); store.set("block", block);
+    $("curBlock").value = String(block);
+    all();
+    msg("Progression restaurée : " + log.length + " match(s) dans le journal.");
+  } catch(err) {
+    msg("Ce fichier n'est pas une sauvegarde de cette page. Choisis un fichier padel-focus-….json.");
+  }
+  e.target.value = "";
+});
+
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(el => { el.hidden = el.id !== "tab-" + name; });
+  document.querySelectorAll(".tabbar button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  store.set("tab", name);
+  window.scrollTo(0, 0);
+}
+$("curBlock").value = String(block);
+all();
+showTab(["match","bank","log"].includes(store.get("tab","match")) ? store.get("tab","match") : "match");
+</script>
+
+</body>
+</html>
